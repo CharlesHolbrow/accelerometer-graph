@@ -21,7 +21,6 @@ class App extends Component {
         //               .gamma
         const acc = event.accelerationIncludingGravity
         const time = event.timeStamp * .001
-        console.log('motion', event.interval, event)
 
         const motionX = this.state.motionX.slice()
         const motionY = this.state.motionY.slice()
