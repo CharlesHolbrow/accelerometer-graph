@@ -1,7 +1,7 @@
 import React from 'react'
 import '../node_modules/react-vis/dist/style.css'
 import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
-
+import './index.css'
 import Pads from './Gamepad'
 
 const MotionMaster = ({onMotionEvent}) => {
@@ -56,12 +56,13 @@ const MotionMaster = ({onMotionEvent}) => {
     setMotionPermission(await DeviceMotionEvent.requestPermission())
   }
 
+  const requestFunction = (window.DeviceMotionEvent && (typeof DeviceMotionEvent.requestPermission === 'function')) && DeviceMotionEvent.requestPermission.bind(DeviceMotionEvent)
+
   return (
     <div>
       <BooleanState text='DeviceMotion available' value={!!window.DeviceMotionEvent} />
-      <BooleanState text='DeviceMotion.requestPermission exists' value={!!(window.DeviceMotionEvent && (typeof DeviceMotionEvent.requestPermission === 'function'))} />
-      <BooleanState text='Permission granted' value={motionPermission} />
-      <button onClick={requestMotionPermissions}>request permission</button>
+      { requestFunction &&  <BooleanState text='Permission granted' value={motionPermission} /> }
+      { requestFunction && <button onClick={requestMotionPermissions}>request permission</button> }
     </div>
   )
 }
@@ -108,7 +109,7 @@ const App = () => {
         })
       }
     }
-  
+
     previousTimeRef.current = time
     requestRef.current = requestAnimationFrame(animate)
   }, [])
