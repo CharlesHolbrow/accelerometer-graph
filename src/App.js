@@ -2,37 +2,37 @@ import React from 'react'
 import '../node_modules/react-vis/dist/style.css'
 import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
 
-const MotionMaster = (props) => {
+const MotionMaster = ({onMotionEvent}) => {
 
   const [motionPermission, setMotionPermission] = React.useState('🤷‍♂️')
 
-  const handleMotionEvent = React.useCallback(event => {
-    // event has several interesting properties, measured in chrome
-    // holding the phone in front of you selfie style (in portrait mode)
-    // - event.accelerationIncludingGravity
-    // - event.acceleration.x left/right
-    //                     .y up/down
-    //                     .z toward/away from you
-    // - event.interval - a time in ms according to the docs (always an integer?)
-    //                  - on chrome for android always 16 on my motox4, but I console.logged 44 updates in a second
-    //                  - on firefox for android always 100, but confusingly, it seems like this event is fired ~220 times a second on firefox
-    //
-    // - event.timeStamp - float value in milliseconds
-    // - rotationRate.alpha
-    //               .beta
-    //               .gamma
-    //
-    // see also: window.addEventListener('deviceorientation', this.state.orientationHandler)
-    const acc = event.accelerationIncludingGravity
-    const time = event.timeStamp * .001
-    const motion = { acc, time }
-    props.onMotionEvent(motion)
-  }, [])
-
   React.useEffect(() => {
+    const handleMotionEvent = event => {
+      // event has several interesting properties, measured in chrome
+      // holding the phone in front of you selfie style (in portrait mode)
+      // - event.accelerationIncludingGravity
+      // - event.acceleration.x left/right
+      //                     .y up/down
+      //                     .z toward/away from you
+      // - event.interval - a time in ms according to the docs (always an integer?)
+      //                  - on chrome for android always 16 on my motox4, but I console.logged 44 updates in a second
+      //                  - on firefox for android always 100, but confusingly, it seems like this event is fired ~220 times a second on firefox
+      //
+      // - event.timeStamp - float value in milliseconds
+      // - rotationRate.alpha
+      //               .beta
+      //               .gamma
+      //
+      // see also: window.addEventListener('deviceorientation', this.state.orientationHandler)
+      const acc = event.accelerationIncludingGravity
+      const time = event.timeStamp * .001
+      const motion = { acc, time }
+      onMotionEvent(motion)
+    }
+
     window.addEventListener('devicemotion', handleMotionEvent)
     return () => { window.removeEventListener('devicemotion', handleMotionEvent)}
-  }, [])
+  }, []) // eslint-disable-line
 
   /**
   * Safari will not fire motion events until the user grants access. As of
@@ -66,15 +66,17 @@ const MotionMaster = (props) => {
 
 const App = () => {
   const motionEventsRef = React.useRef([])             // All motion events
-  const [graphX, setGraphX] = React.useState([]) // data for graph
-  const [graphY, setGraphY] = React.useState([]) // data for graph
-  const [graphZ, setGraphZ] = React.useState([]) // data for graph
-
+  const [state, setState] = React.useState({
+    graphX: [],
+    graphY: [],
+    graphZ: [],
+  })
 
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
   const requestRef = React.useRef()
   const previousTimeRef = React.useRef()
+  const SIZE = 180
 
   const animate = React.useCallback(time => {
     if (typeof previousTimeRef.current === 'number') {
@@ -84,26 +86,20 @@ const App = () => {
       // to make sure we always have the latest state
 
       if (motionEventsRef.current.length) {
-        setGraphX(prevGraph => {
+        setState(({graphX, graphY, graphZ}) => {
+          const newState = {}
           const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
-          const newDataX = prevGraph.slice()
-          newDataX.push({ x: lastEvent.time, y: lastEvent.acc.x })
-          if (newDataX.length > 300) newDataX.shift()
-          return newDataX
-        })
-        setGraphY(prevGraph => {
-          const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
-          const newDataY = prevGraph.slice()
-          newDataY.push({ x: lastEvent.time, y: lastEvent.acc.y })
-          if (newDataY.length > 300) newDataY.shift()
-          return newDataY
-        })
-        setGraphZ(prevGraph => {
-          const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
-          const newDataZ = prevGraph.slice()
-          newDataZ.push({ x: lastEvent.time, y: lastEvent.acc.z })
-          if (newDataZ.length > 300) newDataZ.shift()
-          return newDataZ
+
+          newState.graphX = graphX.slice(Math.max(0, graphX.length - SIZE))
+          newState.graphX.push({ x: lastEvent.time, y: lastEvent.acc.x })
+
+          newState.graphY = graphY.slice(Math.max(0, graphY.length - SIZE))
+          newState.graphY.push({ x: lastEvent.time, y: lastEvent.acc.y })
+
+          newState.graphZ = graphZ.slice(Math.max(0, graphZ.length - SIZE))
+          newState.graphZ.push({ x: lastEvent.time, y: lastEvent.acc.z })
+
+          return newState
         })
       }
     }
@@ -115,23 +111,13 @@ const App = () => {
   React.useEffect(() => {
     requestRef.current = requestAnimationFrame(animate)
     return () => { cancelAnimationFrame(requestRef.current) }
-  }, [])
-
+  }, []) // eslint-disable-line
 
   return (
     <div>
       <h3>App2</h3>
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
-      {/* <Graph dataX={graphData} /> */}
-      <XYPlot height={400} width={400}>
-          <VerticalGridLines />
-          <HorizontalGridLines />
-          <XAxis />
-          <YAxis />
-          <LineSeries className='motion-z' data={graphZ} color='blue' />
-          <LineSeries className='motion-y' data={graphY} color='green' />
-          <LineSeries className='motion-x' data={graphX} color='red' />
-        </XYPlot>
+      <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
     </div>
   )
 }
@@ -140,10 +126,18 @@ const App = () => {
  * @param {object} props
  * @param {object[]} props.dataX
  */
-const Graph = (props) => {
+const Graph = ({dataX, dataY, dataZ}) => {
   return (
     <div>
-
+      <XYPlot height={400} width={400}>
+        <VerticalGridLines />
+        <HorizontalGridLines />
+        <XAxis />
+        <YAxis />
+        <LineSeries className='motion-z' data={dataZ} color='blue' />
+        <LineSeries className='motion-y' data={dataY} color='green' />
+        <LineSeries className='motion-x' data={dataX} color='red' />
+      </XYPlot>
     </div>
   )
 }
