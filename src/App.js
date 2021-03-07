@@ -2,6 +2,8 @@ import React from 'react'
 import '../node_modules/react-vis/dist/style.css'
 import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
 
+import Pads from './Gamepad'
+
 const MotionMaster = ({onMotionEvent}) => {
 
   const [motionPermission, setMotionPermission] = React.useState('🤷‍♂️')
@@ -72,6 +74,8 @@ const App = () => {
     graphZ: [],
   })
 
+  const [gameTime, setGameTime] = React.useState(0)
+
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
   const requestRef = React.useRef()
@@ -81,6 +85,7 @@ const App = () => {
   const animate = React.useCallback(time => {
     if (typeof previousTimeRef.current === 'number') {
       const deltaTime = time - previousTimeRef.current
+      setGameTime(time)
 
       // Pass on a function to the setter of the state
       // to make sure we always have the latest state
@@ -118,6 +123,7 @@ const App = () => {
       <h3>App2</h3>
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
+      <Pads time={gameTime}/>
     </div>
   )
 }
