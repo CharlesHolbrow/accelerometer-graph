@@ -1,11 +1,10 @@
-import React, { Component } from 'react'
+import React from 'react'
 import '../node_modules/react-vis/dist/style.css'
 import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
 
 const MotionMaster = (props) => {
 
-  const [motionPermission, setMotionPermission] =
-    React.useState('🤷‍♂️')
+  const [motionPermission, setMotionPermission] = React.useState('🤷‍♂️')
 
   const handleMotionEvent = React.useCallback(event => {
     // event has several interesting properties, measured in chrome
@@ -28,7 +27,7 @@ const MotionMaster = (props) => {
     const time = event.timeStamp * .001
     const motion = { acc, time }
     props.onMotionEvent(motion)
-  }, [props])
+  }, [])
 
   React.useEffect(() => {
     window.addEventListener('devicemotion', handleMotionEvent)
@@ -65,10 +64,12 @@ const MotionMaster = (props) => {
   )
 }
 
-const App2 = () => {
+const App = () => {
   const motionEventsRef = React.useRef([])             // All motion events
-  const [graphData, setGraphData] = React.useState([]) // data for graph
-  const [count, setCount] = React.useState(0)          // misclaneous
+  const [graphX, setGraphX] = React.useState([]) // data for graph
+  const [graphY, setGraphY] = React.useState([]) // data for graph
+  const [graphZ, setGraphZ] = React.useState([]) // data for graph
+
 
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
@@ -81,15 +82,28 @@ const App2 = () => {
 
       // Pass on a function to the setter of the state
       // to make sure we always have the latest state
-      setCount(prevCount => (prevCount + deltaTime * 0.01))
+
       if (motionEventsRef.current.length) {
-        setGraphData(prevGraph => {
+        setGraphX(prevGraph => {
           const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
-          const newData = prevGraph.slice()
-          const datum = { x: lastEvent.time, y: lastEvent.acc.x }
-          newData.push(datum)
-          if (newData.length > 300) newData.shift()
-          setGraphData(newData)
+          const newDataX = prevGraph.slice()
+          newDataX.push({ x: lastEvent.time, y: lastEvent.acc.x })
+          if (newDataX.length > 300) newDataX.shift()
+          return newDataX
+        })
+        setGraphY(prevGraph => {
+          const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
+          const newDataY = prevGraph.slice()
+          newDataY.push({ x: lastEvent.time, y: lastEvent.acc.y })
+          if (newDataY.length > 300) newDataY.shift()
+          return newDataY
+        })
+        setGraphZ(prevGraph => {
+          const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
+          const newDataZ = prevGraph.slice()
+          newDataZ.push({ x: lastEvent.time, y: lastEvent.acc.z })
+          if (newDataZ.length > 300) newDataZ.shift()
+          return newDataZ
         })
       }
     }
@@ -101,7 +115,7 @@ const App2 = () => {
   React.useEffect(() => {
     requestRef.current = requestAnimationFrame(animate)
     return () => { cancelAnimationFrame(requestRef.current) }
-  }, [animate])
+  }, [])
 
 
   return (
@@ -114,9 +128,9 @@ const App2 = () => {
           <HorizontalGridLines />
           <XAxis />
           <YAxis />
-          {/* <LineSeries className='motion-z' data={this.state.motionZ} color='blue' /> */}
-          {/* <LineSeries className='motion-y' data={this.state.motionY} color='green' /> */}
-          <LineSeries className='motion-x' data={graphData} color='red' />
+          <LineSeries className='motion-z' data={graphZ} color='blue' />
+          <LineSeries className='motion-y' data={graphY} color='green' />
+          <LineSeries className='motion-x' data={graphX} color='red' />
         </XYPlot>
     </div>
   )
@@ -140,4 +154,4 @@ function BooleanState(props) {
   )
 }
 
-export default App2
+export default App
