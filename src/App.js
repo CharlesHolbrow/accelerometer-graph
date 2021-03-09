@@ -142,8 +142,8 @@ const App = () => {
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
       <Pads time={gameTime}/>
-      <LocalStoreTextField storageRef={sessionNameRef} id='input-session-name' label='session' type='text' />
-      <LocalStoreTextField storageRef={keyRef}         id='input-key'          label='key'     type='password' />
+      <LocalStoreTextField onChange={setSessionName} id='input-session-name' label='session' type='text' />
+      <LocalStoreTextField onChange={setKey}         id='input-key'          label='key'     type='password' />
       <button onClick={sendMotionEventsToServer}>Send</button>
     </div>
   )

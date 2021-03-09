@@ -1,27 +1,26 @@
 import React from 'react'
 
-export default function LocalStoreTextField({ id, label, storageRef, type = 'text' }) {
+export default function LocalStoreTextField({ id, label, onChange, type = 'text' }) {
   if (typeof id !== 'string') throw new Error('TextField missing id')
 
   const localStorageKey = `LocalStoreTextField:${id}`
+  const localStorageValue = window.localStorage.getItem(localStorageKey)
 
-  // The first time this is instantiated, get the local storage element.
-  // Remember local storage will return null when we set it to an empty string.
-  React.useEffect(() => {
-    const text = window.localStorage.getItem(localStorageKey)
-    if (text) storageRef.current = text
-  }, [])
+  // Annoyingly, it seems like we have to store the state locally. To pass the
+  // state up, use onChange method, and store the result in a ref.
+  const [text, setText] = React.useState(localStorageValue)
 
   const localOnChange = (event) => {
     const text = event.target.value
     window.localStorage.setItem(localStorageKey, text)
-    storageRef.current = text
+    setText(text)
+    if (typeof onChange === 'function') onChange(text)
   }
 
   return (
   <div>
     <label>{label}
-      <input id={id} type={type} onChange={localOnChange} value={storageRef.current} />
+      <input id={id} type={type} onChange={localOnChange} value={text} />
     </label>
   </div>)
 }
