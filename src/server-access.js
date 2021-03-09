@@ -1,4 +1,3 @@
-const isProduction = process.env.NODE_ENV === 'production'
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 // In development, we have two servers: the one that serves the react project on
@@ -11,7 +10,7 @@ const urlPrefix = isDevelopment ? 'http://localhost:3000/session/' : '/session/'
  * @param {object} payload
  */
 export async function sendToServer (key, sessionId, payload) {
-  const url = urlPrefix + sessionId
+  const url = urlPrefix + sessionId.trim()
   return await fetch(url, {
     method: 'POST',
     headers: { 'react-sensors-key': key, 'content-type': 'application/json' },

@@ -1,13 +1,17 @@
-import React from 'react'
-import '../node_modules/react-vis/dist/style.css'
-import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
 import './index.css'
+
+import React from 'react'
+
+// My React Components
 import Pads from './Gamepad'
+import Graph from './Graph'
+import LocalStoreTextField from './LocalStoreTextField'
+
+// My miscellaneous
 import { sendToServer } from './server-access'
 
 const MotionMaster = ({onMotionEvent}) => {
-
-  const [motionPermission, setMotionPermission] = React.useState('🤷‍♂️')
+  const [motionPermission, setMotionPermission] = React.useState('🤷')
 
   React.useEffect(() => {
     const handleMotionEvent = event => {
@@ -120,11 +124,15 @@ const App = () => {
     return () => { cancelAnimationFrame(requestRef.current) }
   }, []) // eslint-disable-line
 
+  const keyRef = React.useRef('secret')
+  const setKey = (key) => keyRef.current = key
+  const sessionNameRef = React.useRef('session01')
+  const setSessionName = (sessionName) => sessionNameRef.current = sessionName
+
   const sendMotionEventsToServer = async () => {
-    // TODO: get the key from a PW text field (and store that in localstorage)
-    // TODO: get the session id from text field (and store that in localstore)
     // TODO: display results
-    const result = await sendToServer('this is a key!', 'tuesday', { example: 'payload' })
+    // TODO: send actual content. (not dummy content)
+    const result = await sendToServer(keyRef.current, sessionNameRef.current, { example: 'payload' })
     console.log(result)
   }
 
@@ -135,29 +143,13 @@ const App = () => {
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
       <button onClick={sendMotionEventsToServer}>Send</button>
       <Pads time={gameTime}/>
+      <LocalStoreTextField storageRef={sessionNameRef} id='input-session-name' label='session' type='text' />
+      <LocalStoreTextField storageRef={keyRef}         id='input-key'          label='key'     type='password' />
     </div>
   )
 }
 
-/**
- * @param {object} props
- * @param {object[]} props.dataX
- */
-const Graph = ({dataX, dataY, dataZ}) => {
-  return (
-    <div>
-      <XYPlot height={400} width={400}>
-        <VerticalGridLines />
-        <HorizontalGridLines />
-        <XAxis />
-        <YAxis />
-        <LineSeries className='motion-z' data={dataZ} color='blue' />
-        <LineSeries className='motion-y' data={dataY} color='green' />
-        <LineSeries className='motion-x' data={dataX} color='red' />
-      </XYPlot>
-    </div>
-  )
-}
+
 
 function BooleanState(props) {
   return (
