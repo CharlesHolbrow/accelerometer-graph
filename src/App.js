@@ -66,7 +66,7 @@ const MotionMaster = ({onMotionEvent}) => {
   return (
     <div>
       <BooleanState text='DeviceMotion available' value={!!window.DeviceMotionEvent} />
-      { requestFunction &&  <BooleanState text='Permission granted' value={motionPermission} /> }
+      { requestFunction && <BooleanState text='Permission granted' value={motionPermission} /> }
       { requestFunction && <button onClick={requestMotionPermissions}>request permission</button> }
     </div>
   )
@@ -141,10 +141,10 @@ const App = () => {
       <h3>App2</h3>
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
-      <button onClick={sendMotionEventsToServer}>Send</button>
       <Pads time={gameTime}/>
       <LocalStoreTextField storageRef={sessionNameRef} id='input-session-name' label='session' type='text' />
       <LocalStoreTextField storageRef={keyRef}         id='input-key'          label='key'     type='password' />
+      <button onClick={sendMotionEventsToServer}>Send</button>
     </div>
   )
 }
