@@ -3,6 +3,7 @@ import '../node_modules/react-vis/dist/style.css'
 import { XYPlot, LineSeries, VerticalGridLines, HorizontalGridLines, XAxis, YAxis } from 'react-vis'
 import './index.css'
 import Pads from './Gamepad'
+import { sendToServer } from './server-access'
 
 const MotionMaster = ({onMotionEvent}) => {
 
@@ -68,7 +69,7 @@ const MotionMaster = ({onMotionEvent}) => {
 }
 
 const App = () => {
-  const motionEventsRef = React.useRef([])             // All motion events
+  const motionEventsRef = React.useRef([])    // All motion events
   const [state, setState] = React.useState({
     graphX: [],
     graphY: [],
@@ -119,11 +120,20 @@ const App = () => {
     return () => { cancelAnimationFrame(requestRef.current) }
   }, []) // eslint-disable-line
 
+  const sendMotionEventsToServer = async () => {
+    // TODO: get the key from a PW text field (and store that in localstorage)
+    // TODO: get the session id from text field (and store that in localstore)
+    // TODO: display results
+    const result = await sendToServer('this is a key!', 'tuesday', { example: 'payload' })
+    console.log(result)
+  }
+
   return (
     <div>
       <h3>App2</h3>
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
+      <button onClick={sendMotionEventsToServer}>Send</button>
       <Pads time={gameTime}/>
     </div>
   )
