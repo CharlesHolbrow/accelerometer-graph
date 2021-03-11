@@ -3,7 +3,7 @@ import './index.css'
 import React from 'react'
 
 // My React Components
-import Pads from './Gamepad'
+import Pads from './Pads'
 import Graph from './Graph'
 import LocalStoreTextField from './LocalStoreTextField'
 
@@ -148,8 +148,6 @@ const App = () => {
     </div>
   )
 }
-
-
 
 function BooleanState(props) {
   return (
