@@ -32,10 +32,10 @@ function Pad({buttons}) {
 }
 
 const createCPad = (jsPad) => {
-  return { buttons: jsPad.buttons.map(b => b.value), id: jsPad.id, index: jsPad.index }
+  return { buttons: jsPad.buttons.map(b => { return { value: b.value, pressed: b.pressed, touched: b.touched } }), id: jsPad.id, index: jsPad.index, jsPad }
 }
 
-function Pads({ time }) {
+function Pads({ time, onButtonEvent }) {
   const previousGamepadsRef = React.useRef([])
 
   // Note that firefox will return the same object on subsequent calls to
@@ -71,14 +71,16 @@ function Pads({ time }) {
       addPad(cPad)
     } else {
       for (const [j, b] of cPad.buttons.entries()) {
-        if (b !== previousGamepads[i].buttons[j]) console.log(`pad${i} b${j} state: ${b} at ${time}`)
+        if (b.pressed !== previousGamepads[i].buttons[j].pressed) {
+          if (typeof onButtonEvent === 'function') onButtonEvent({ type: b.pressed ? 'down' : 'up', button: j, pad: i, time })
+        } 
       }
       cStateRef.current[cPad.index] = cPad
     }
   })
 
   const padElements = Object.entries(cStateRef.current).map(([i, cPad]) => {
-    return <Pad buttons={cPad.buttons} key={i} ></Pad>
+    return <Pad buttons={cPad.buttons.map(b => b.pressed)} key={i} ></Pad>
   })
 
   return (

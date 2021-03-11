@@ -4,7 +4,7 @@ export default function LocalStoreTextField({ id, label, onChange, type = 'text'
   if (typeof id !== 'string') throw new Error('TextField missing id')
 
   const localStorageKey = `LocalStoreTextField:${id}`
-  const localStorageValue = window.localStorage.getItem(localStorageKey)
+  const localStorageValue = window.localStorage.getItem(localStorageKey) || ''
 
   // Annoyingly, it seems like we have to store the state locally. To pass the
   // state up, use onChange method, and store the result in a ref.

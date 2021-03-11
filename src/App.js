@@ -11,47 +11,68 @@ import MotionMaster from './MotionMaster'
 // My miscellaneous
 import { sendToServer } from './server-access'
 
-const App = () => {
-  const motionEventsRef = React.useRef([])    // All motion events
+export default function App() {
+  const motionEventsRef = React.useRef([]) // All motion events
+  const buttonEventsRef = React.useRef([]) // All button events
+  const previousMotionEvent = React.useRef(null)
   const [state, setState] = React.useState({
     graphX: [],
     graphY: [],
     graphZ: [],
+    buttons: [],
+    gameTime: 0,
   })
 
-  const [gameTime, setGameTime] = React.useState(0)
+  // const [gameTime, setGameTime] = React.useState(0)
 
   // Use useRef for mutable variables that we want to persist
   // without triggering a re-render on their change
   const requestRef = React.useRef()
   const previousTimeRef = React.useRef()
+  const graphDurationSeconds = 8
   const SIZE = 180
 
   const animate = React.useCallback(time => {
+    time *= 0.001 // do everything in seconds, not milliseconds
     if (typeof previousTimeRef.current === 'number') {
       const deltaTime = time - previousTimeRef.current
-      setGameTime(time)
 
       // Pass on a function to the setter of the state
       // to make sure we always have the latest state
 
-      if (motionEventsRef.current.length) {
-        setState(({graphX, graphY, graphZ}) => {
-          const newState = {}
-          const lastEvent = motionEventsRef.current[motionEventsRef.current.length - 1]
+      setState((oldState) => {
+        // If we want to "bail out", we can return the old state object
+        const {graphX, graphY, graphZ, buttons} = oldState
 
-          newState.graphX = graphX.slice(Math.max(0, graphX.length - SIZE))
-          newState.graphX.push({ x: lastEvent.time, y: lastEvent.acc.x })
+        if (motionEventsRef.current.length) {
+          const newState = { gameTime: time } 
 
-          newState.graphY = graphY.slice(Math.max(0, graphY.length - SIZE))
-          newState.graphY.push({ x: lastEvent.time, y: lastEvent.acc.y })
+          let i = motionEventsRef.current.length -1
+          const mostRecentEvent = motionEventsRef.current[i]
+          const previouslyAddedMotionEvent = previousMotionEvent.current
+          previousMotionEvent.current = mostRecentEvent
 
-          newState.graphZ = graphZ.slice(Math.max(0, graphZ.length - SIZE))
-          newState.graphZ.push({ x: lastEvent.time, y: lastEvent.acc.z })
+          const graphStartTime = time - graphDurationSeconds
+          const sliceFrom = indexOfLastEventBefore(graphStartTime, graphX)
+          const sliceTo = graphX.length
+
+          newState.graphX = graphX.slice(sliceFrom, sliceTo)
+          newState.graphY = graphY.slice(sliceFrom, sliceTo)
+          newState.graphZ = graphZ.slice(sliceFrom, sliceTo)
+
+          if (mostRecentEvent !== previouslyAddedMotionEvent) {
+            newState.graphX.push({ x: mostRecentEvent.time, y: mostRecentEvent.acc.x })
+            newState.graphY.push({ x: mostRecentEvent.time, y: mostRecentEvent.acc.y })
+            newState.graphZ.push({ x: mostRecentEvent.time, y: mostRecentEvent.acc.z })
+          }
+
+          // find all the button pushes that are within the window of interest
+          // TODO
 
           return newState
-        })
-      }
+        }
+        return oldState
+      })
     }
 
     previousTimeRef.current = time
@@ -78,10 +99,10 @@ const App = () => {
   return (
     <div>
       <h3>App2</h3>
-      <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion)}/>
+      <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion) }/>
       <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
-      <div>game time: {(gameTime * 0.001).toFixed(1)}</div>
-      <Pads time={gameTime}/>
+      <div>game time: {state.gameTime.toFixed(1)}</div>
+      <Pads time={state.gameTime} onButtonEvent={event => buttonEventsRef.current.push(event) }/>
       <LocalStoreTextField onChange={setSessionName} id='input-session-name' label='session' type='text' />
       <LocalStoreTextField onChange={setKey}         id='input-key'          label='key'     type='password' />
       <button onClick={sendMotionEventsToServer}>Send</button>
@@ -89,4 +110,12 @@ const App = () => {
   )
 }
 
-export default App
+// Find which items we need to remove from the 
+const indexOfLastEventBefore = (time, events) => {
+  let i = 0
+  while (i < events.length) {
+    if (events[i].x > time) break
+    i++
+  }
+  return i
+}
