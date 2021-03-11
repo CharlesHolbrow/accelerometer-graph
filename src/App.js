@@ -30,7 +30,6 @@ export default function App() {
   const requestRef = React.useRef()
   const previousTimeRef = React.useRef()
   const graphDurationSeconds = 8
-  const SIZE = 180
 
   const animate = React.useCallback(time => {
     time *= 0.001 // do everything in seconds, not milliseconds
@@ -67,7 +66,12 @@ export default function App() {
           }
 
           // find all the button pushes that are within the window of interest
-          // TODO
+          const newButtons = newState.buttons = []
+          for (let i = buttonEventsRef.current.length - 1; i >=0; i--) {
+            const buttonEvent = buttonEventsRef.current[i]
+            if (buttonEvent.time < graphStartTime) break
+            if (buttonEvent.type === 'down') newButtons.push({x: buttonEvent.time, y: buttonEvent.button })
+          }
 
           return newState
         }
@@ -100,7 +104,7 @@ export default function App() {
     <div>
       <h3>App2</h3>
       <MotionMaster onMotionEvent={motion => motionEventsRef.current.push(motion) }/>
-      <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} />
+      <Graph dataX={state.graphX} dataY={state.graphY} dataZ={state.graphZ} dataB={state.buttons} />
       <div>game time: {state.gameTime.toFixed(1)}</div>
       <Pads time={state.gameTime} onButtonEvent={event => buttonEventsRef.current.push(event) }/>
       <LocalStoreTextField onChange={setSessionName} id='input-session-name' label='session' type='text' />
