@@ -22,7 +22,7 @@ const indexOfLastEventBefore = (time, events) => {
   return i
 }
 
-const SEND_INTERVAL_SECONDS = 20
+const SEND_INTERVAL_SECONDS = 60
 
 export default function App() {
   // These two EventsRef objects are where we store our event while they are
