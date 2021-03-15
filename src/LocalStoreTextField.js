@@ -17,6 +17,9 @@ export default function LocalStoreTextField({ id, label, onChange, type = 'text'
     if (typeof onChange === 'function') onChange(text)
   }
 
+  // call the parent's onChange the FIRST time this renders
+  React.useEffect(() => {onChange(localStorageValue)}, [])
+
   return (
   <div>
     <label>{label}
