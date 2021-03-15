@@ -80,7 +80,7 @@ export default function App() {
 
     const content = {
       motionEvents: motionEventsRef.current,
-      buttonEventsRef: buttonEventsRef.current,
+      buttonEvents: buttonEventsRef.current,
     }
     motionEventsRef.current = []
     buttonEventsRef.current = []
