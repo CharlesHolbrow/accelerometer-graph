@@ -1,6 +1,7 @@
 import './index.css'
 
 import React from 'react'
+import { useWakeLock } from 'react-screen-wake-lock'
 
 // My React Components
 import Pads from './Pads'
@@ -68,6 +69,11 @@ export default function App() {
   const sessionNameRef = React.useRef('session01')
   const setSessionName = (sessionName) => sessionNameRef.current = sessionName
 
+
+  // { isSupported, released, request, release }
+  const wakeLock = useWakeLock({ onError: () => log('error securing wake lock 💥') })
+
+
   const sendEventsToServer = async () => {
     // Update the previous sendTimeRef even if there is nothing to send. This
     // will just trigger another retry after SEND_INTERVAL_SECONDS
@@ -100,8 +106,10 @@ export default function App() {
       previousSendTimeRef.current = state.gameTime
       motionEventsRef.current = []
       buttonEventsRef.current = []
+      if (wakeLock.isSupported) wakeLock.request()
     } else {
       sendEventsToServer()
+      if (wakeLock.isSupported) wakeLock.release()
     }
     setRecording(!recording)
   }
@@ -167,7 +175,7 @@ export default function App() {
       <LocalStoreTextField onChange={setSessionName} id='input-session-name' label='session' type='text' />
       <LocalStoreTextField onChange={setKey}         id='input-key'          label='key'     type='password' />
       <button onClick={toggleRecording}>{recording ? 'Stop' : 'Record'}</button>
-      <button onClick={sendEventsToServer}>Send</button>
+      <button onClick={sendEventsToServer}>Send</button> {wakeLock.isSupported && (wakeLock.released ? '😴' : '🔒')}
       <div style={{color:'red'}}>{message}</div>
     </div>
   )
