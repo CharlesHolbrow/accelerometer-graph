@@ -115,7 +115,8 @@ export default function App() {
     setState((oldState) => {
       // If we want to "bail out", we can return the old state object
       const { graphX, graphY, graphZ } = oldState
-      const newState = { gameTime: time }
+      const newState = { ...oldState }
+      newState.gameTime = time
 
       if (motionEventsRef.current.length) {
         let i = motionEventsRef.current.length -1
