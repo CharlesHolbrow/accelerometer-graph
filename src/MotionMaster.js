@@ -27,7 +27,11 @@ export default function MotionMaster ({onMotionEvent}) {
       //               .gamma
       //
       // see also: window.addEventListener('deviceorientation', this.state.orientationHandler)
-      const acc = event.accelerationIncludingGravity
+      const acc = {
+        x: event.accelerationIncludingGravity.x,
+        y: event.accelerationIncludingGravity.y,
+        z: event.accelerationIncludingGravity.z,
+      }
       const time = event.timeStamp * .001
       const motion = { acc, time }
       onMotionEvent(motion)
